@@ -4,15 +4,40 @@ using UnityEngine;
 
 public class PlayController : BaseController
 {
-    // Start is called before the first frame update
-    void Start()
+    #region Camera
+
+    public override void MoveCamera(MoveType moveType)
     {
-        
+        _playCamera.MoveCamera(moveType);
     }
 
-    // Update is called once per frame
-    void Update()
+    #endregion
+
+    #region Stage
+
+    #endregion
+
+    #region Player
+
+    public override Transform GetPlayerTransform()
     {
-        
+        return _userPlayer.GetPlayerTransform();
     }
+
+    public override JumpType GetJumpType()
+    {
+        return _userPlayer.GetJumpType();
+    }
+
+    public override void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType)
+    {
+        _userPlayer.InputEvent(moveType, attackType, jumpType);
+    }
+
+    #endregion
+
+    #region UI
+
+    #endregion
+
 }

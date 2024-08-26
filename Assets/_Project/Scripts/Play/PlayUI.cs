@@ -4,16 +4,79 @@ using UnityEngine;
 
 public class PlayUI : BaseUI
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    // private bool _isJumping = false;
+    // private float _jumpTimer = 0f;
 
-    // Update is called once per frame
     void Update()
     {
-        
+        MoveType moveType = MoveType.None;
+
+        // Move
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            moveType = MoveType.Up;
+        }
+        else if (Input.GetKey(KeyCode.DownArrow))
+        {
+            moveType = MoveType.Down;
+        }
+
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            if (moveType == MoveType.Up)
+            {
+                moveType = MoveType.UpLeft;
+            }
+            else if (moveType == MoveType.Down)
+            {
+                moveType = MoveType.DownLeft;
+            }
+            else
+            {
+                moveType = MoveType.Left;
+            }
+        }
+        else if (Input.GetKey(KeyCode.RightArrow))
+        {
+            if (moveType == MoveType.Up)
+            {
+                moveType = MoveType.UpRight;
+            }
+            else if (moveType == MoveType.Down)
+            {
+                moveType = MoveType.DownRight;
+            }
+            else
+            {
+                moveType = MoveType.Right;
+            }
+        }
+
+        // Attack
+        AttackType attackType = AttackType.None;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            attackType = AttackType.A;
+        }
+
+        // Jump
+        JumpType jumpType = JumpType.None;
+
+        if (Input.GetKey(KeyCode.LeftAlt))
+        {
+            jumpType = JumpType.Single;
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftAlt))
+        {
+            if (_controller.GetJumpType() == JumpType.Single)
+            {
+                jumpType = JumpType.Double;
+            }
+        }
+
+        _controller.InputEvent(moveType, attackType, jumpType);
     }
 }
 

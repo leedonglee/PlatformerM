@@ -21,12 +21,17 @@ using Cysharp.Threading.Tasks;
 
 public enum MoveType
 {
-    None, Top, Bottom, Left, Right
+    None, Up, Down, Left, Right, UpLeft, UpRight, DownLeft, DownRight
+}
+
+public enum AttackType
+{
+    None, A, Q, W, E, R
 }
 
 public enum JumpType
 {
-    Ground, Ladder
+    None, Single, Double
 }
 
 #endregion
@@ -40,31 +45,36 @@ public interface IBaseController : IBaseCamera, IBaseStage, IBasePlayer, IBaseUI
 
 public interface IBaseCamera
 {
-    // Top, Bottom은 캐릭터 중앙, Left, Right는 캐릭터 좌우측 이동
+    // from Player
     void MoveCamera(MoveType moveType);
 }
 
 public interface IBaseStage
 {
     /*
-    void SetTerrain(Transform playerTransform, JumpType jumpType = JumpType.Ground);
+    // Player
+    void SetTerrain(Transform playerTransform, 점프 위치 jumpType = JumpType.Ground);
 
     bool CanClimb();
 
-    bool CanJumpDown();    
+    bool CanJumpDown();
     */
 }
 
 public interface IBasePlayer
 {
+    // from Camera
     Transform GetPlayerTransform();
+
+    // from UI
+    void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
+
+    JumpType GetJumpType();
 }
 
 public interface IBaseUI
 {
     /*
-    void InputEvent(MoveType moveDirection, bool attackState, bool jumpState);
-
     void SetTimer(float timer);
 
     void SetHit(int damage);
@@ -100,19 +110,25 @@ public abstract class BaseController : MonoBehaviour, IBaseController
 
     #region Camera
 
-    public void MoveCamera(MoveType moveType)
-    {
-        _playCamera.MoveCamera(moveType);
-    }
+    public abstract void MoveCamera(MoveType moveType);
 
     #endregion
 
-    #region 
+    #region Stage
 
-    public Transform GetPlayerTransform()
-    {
-        return _userPlayer.GetPlayerTransform();
-    }
+    #endregion
+
+    #region Player
+
+    public abstract Transform GetPlayerTransform();
+
+    public abstract JumpType GetJumpType();
+
+    public abstract void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
+
+    #endregion
+
+    #region UI
 
     #endregion
 }
@@ -140,6 +156,10 @@ public abstract class BaseStage : PlayBase, IBaseStage
 public abstract class BasePlayer : PlayBase, IBasePlayer
 {
     public abstract Transform GetPlayerTransform();
+
+    public abstract void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
+
+    public abstract JumpType GetJumpType();
 }
 
 public abstract class BaseUI : PlayBase, IBaseUI
