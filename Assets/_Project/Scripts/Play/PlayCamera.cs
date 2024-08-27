@@ -86,7 +86,7 @@ public sealed class PlayCamera : BaseCamera
         positionY = Mathf.Clamp(positionY, _minPoint.y, _maxPoint.y);
 
         // Set Position
-        _camera.transform.position =  Vector3.Lerp(_camera.transform.position, new Vector3(positionX, positionY, _camera.transform.position.z), 4f * Time.deltaTime);
+        _camera.transform.position =  Vector3.Lerp(_camera.transform.position, new Vector3(positionX, positionY, _camera.transform.position.z), 2f * Time.deltaTime);
     }
 
     public override void MoveCamera(MoveType moveType)

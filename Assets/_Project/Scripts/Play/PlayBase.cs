@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-using Cysharp.Threading.Tasks;
+
 
 /*
 
@@ -31,7 +31,7 @@ public enum AttackType
 
 public enum JumpType
 {
-    None, Single, SingleJump, Double, DoubleJump
+    None, Single, SingleJump, Double, DoubleJump, LadderJump
 }
 
 #endregion
@@ -102,9 +102,18 @@ public interface IBaseCamera
 
 #region Stage
 
+public interface ILadder
+{
+    bool CanClimb { get; set; }
+
+    float MaxY { get; }
+
+    float MinY { get; }
+}
+
 public interface IBaseStage
 {
-    bool CanClimb(Transform playerTransform);
+    ILadder GetLadder(Transform footTransform, bool moveUp);
 
     // bool CanJumpDown();
 
@@ -116,7 +125,7 @@ public interface IBaseStage
 
 public abstract class BaseStage : PlayBase, IBaseStage
 {
-    public abstract bool CanClimb(Transform playerTransform);
+    public abstract ILadder GetLadder(Transform footTransform, bool moveUp);
 
     // public abstract bool CanJumpDown();
 }
