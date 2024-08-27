@@ -21,16 +21,17 @@ public sealed class PlayCamera : BaseCamera
     // _playerTransform의 Y값에 추가되는 높이값
     private float _addPointY;
 
-    private MoveType _moveType;
+    private MoveType _moveType = MoveType.Right;
 
     void Start()
     {
         _camera = GetComponent<Camera>();
-        _playerTransform = _controller.GetPlayerTransform();
+        _playerTransform = _controller.Player.Transform;
 
         Vector3 camMinPoint = _camera.ViewportToWorldPoint(new Vector3(0, 0, _camera.nearClipPlane));
         Vector3 camMaxPoint = _camera.ViewportToWorldPoint(new Vector3(1, 1, _camera.nearClipPlane));
 
+        // TODO : Vector로 변환
         float distanceX = Mathf.Abs(camMaxPoint.x - camMinPoint.x);
 
         float midpointX = distanceX / 2f;
@@ -75,11 +76,11 @@ public sealed class PlayCamera : BaseCamera
 
         if (_moveType == MoveType.Up)
         {
-            positionY -= 1f;
+            positionY += 1f;
         }
         else if (_moveType == MoveType.Down)
         {
-            positionY += 1f;
+            positionY -= 1f;
         }
 
         positionY = Mathf.Clamp(positionY, _minPoint.y, _maxPoint.y);

@@ -31,106 +31,46 @@ public enum AttackType
 
 public enum JumpType
 {
-    None, Single, Double
+    None, Single, SingleJump, Double, DoubleJump
 }
 
 #endregion
 
-#region Interface
+#region Controller
 
-public interface IBaseController : IBaseCamera, IBaseStage, IBasePlayer, IBaseUI
+public interface IBaseController
 {
-    
+    IBaseCamera Camera { get; }
+    IBaseStage  Stage  { get; }
+    IBasePlayer Player { get; }
+    IBaseUI UI { get; }
 }
-
-public interface IBaseCamera
-{
-    // from Player
-    void MoveCamera(MoveType moveType);
-}
-
-public interface IBaseStage
-{
-    /*
-    // Player
-    void SetTerrain(Transform playerTransform, 점프 위치 jumpType = JumpType.Ground);
-
-    bool CanClimb();
-
-    bool CanJumpDown();
-    */
-}
-
-public interface IBasePlayer
-{
-    // from Camera
-    Transform GetPlayerTransform();
-
-    // from UI
-    void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
-
-    JumpType GetJumpType();
-}
-
-public interface IBaseUI
-{
-    /*
-    void SetTimer(float timer);
-
-    void SetHit(int damage);
-
-    void SetDamage(int damage);
-    */
-}
-
-#endregion
-
-#region Class
 
 public abstract class BaseController : MonoBehaviour, IBaseController
 {
     [SerializeField]
-    protected BaseCamera _playCamera;
+    protected BaseCamera _baseCamera;
     [SerializeField]
-    protected BaseStage _playStage;
+    protected BaseStage  _baseStage;
     [SerializeField]
-    protected BasePlayer _userPlayer;
+    protected BasePlayer _basePlayer;
     [SerializeField]
-    protected BaseUI _playUI;
+    protected BaseUI _baseUI;
+
+    public IBaseCamera Camera => _baseCamera;
+    public IBaseStage Stage   => _baseStage;
+    public IBasePlayer Player => _basePlayer;
+    public IBaseUI UI => _baseUI;
 
     void Awake()
     {
-        List<PlayBase> list = new () { _playCamera, _playStage, _userPlayer, _playUI };
+        List<PlayBase> list = new () { _baseCamera, _baseStage, _basePlayer, _baseUI };
 
         for (int i = 0; i < list.Count; i++)
         {
             list[i].SetController(this);
         }
     }
-
-    #region Camera
-
-    public abstract void MoveCamera(MoveType moveType);
-
-    #endregion
-
-    #region Stage
-
-    #endregion
-
-    #region Player
-
-    public abstract Transform GetPlayerTransform();
-
-    public abstract JumpType GetJumpType();
-
-    public abstract void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
-
-    #endregion
-
-    #region UI
-
-    #endregion
 }
 
 public abstract class PlayBase : MonoBehaviour
@@ -143,23 +83,79 @@ public abstract class PlayBase : MonoBehaviour
     }
 }
 
+#endregion
+
+#region Camera
+
 public abstract class BaseCamera : PlayBase, IBaseCamera 
 {
     public abstract void MoveCamera(MoveType moveType);
 }
 
+public interface IBaseCamera
+{
+    // from Player
+    void MoveCamera(MoveType moveType);
+}
+
+#endregion
+
+#region Stage
+
+public interface IBaseStage
+{
+    bool CanClimb(Transform playerTransform);
+
+    // bool CanJumpDown();
+
+    /*
+    // Player
+    void SetTerrain(Transform playerTransform, 점프 위치 jumpType = JumpType.Ground);
+    */
+}
+
 public abstract class BaseStage : PlayBase, IBaseStage
 {
+    public abstract bool CanClimb(Transform playerTransform);
 
+    // public abstract bool CanJumpDown();
 }
+
+#endregion
+
+public interface IBasePlayer
+{
+    Transform Transform { get; } // <- Camera, Stage
+
+    JumpType  JumpType  { get; } // <- UI
+
+    void Control(MoveType moveType, AttackType attackType, JumpType jumpType); // <- UI
+}
+
+#region Player
 
 public abstract class BasePlayer : PlayBase, IBasePlayer
 {
-    public abstract Transform GetPlayerTransform();
+    public abstract Transform Transform { get; }
 
-    public abstract void InputEvent(MoveType moveType, AttackType attackType, JumpType jumpType);
+    public abstract JumpType  JumpType  { get; }
 
-    public abstract JumpType GetJumpType();
+    public abstract void Control(MoveType moveType, AttackType attackType, JumpType jumpType);
+}
+
+#endregion
+
+#region UI
+
+public interface IBaseUI
+{
+    /*
+    void SetTimer(float timer);
+
+    void SetHit(int damage);
+
+    void SetDamage(int damage);
+    */
 }
 
 public abstract class BaseUI : PlayBase, IBaseUI

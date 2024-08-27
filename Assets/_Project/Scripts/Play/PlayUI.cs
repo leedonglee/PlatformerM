@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class PlayUI : BaseUI
 {
-    // private bool _isJumping = false;
-    // private float _jumpTimer = 0f;
-
     void Update()
+    {
+        PlayerControl();
+    }
+
+    void PlayerControl()
     {
         MoveType moveType = MoveType.None;
 
@@ -61,23 +63,27 @@ public class PlayUI : BaseUI
         }
 
         // Jump
-        JumpType jumpType = JumpType.None;
+        JumpType jumpType = _controller.Player.JumpType;
 
         if (Input.GetKey(KeyCode.LeftAlt))
         {
-            jumpType = JumpType.Single;
+            if (_controller.Player.JumpType == JumpType.None)
+            {
+                jumpType = JumpType.Single;
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.LeftAlt))
         {
-            if (_controller.GetJumpType() == JumpType.Single)
+            if (_controller.Player.JumpType == JumpType.SingleJump)
             {
                 jumpType = JumpType.Double;
             }
         }
 
-        _controller.InputEvent(moveType, attackType, jumpType);
+        _controller.Player.Control(moveType, attackType, jumpType);
     }
+
 }
 
 /*
