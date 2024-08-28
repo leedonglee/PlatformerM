@@ -14,6 +14,7 @@ public class UserPlayer : BasePlayer
 
     private const float PLAYER_MAX_GRAVITY = -10f;
     private const float PLAYER_MOVE_SPEED = 3f;
+    private const float PLAYER_JUMP_TIME = 0.5f;
 
     private Rigidbody2D _rigidbody;
 
@@ -25,14 +26,29 @@ public class UserPlayer : BasePlayer
     private MoveType _moveType = MoveType.None;
     private JumpType _jumpType = JumpType.None;
 
+    // Platform LayerMask
+    private LayerMask _platformLayerMask;
+
     public override Transform Transform => transform;
 
     public override JumpType  JumpType  => _jumpType;
+
+    // TODO
+    // 점프 벽 통과
+    // 하단 점프
 
     void Start()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rigidbody = GetComponent<Rigidbody2D>();
+
+        // Platform Layers
+        string[] platformLayers = new string[2]; // Ground, Box, ...
+
+        platformLayers[0] = GameLayer.GROUND;
+        platformLayers[1] = GameLayer.BOX;
+
+        _platformLayerMask = LayerMask.GetMask(platformLayers);
     }
 
     /*
@@ -86,21 +102,55 @@ public class UserPlayer : BasePlayer
         }
         else if (_jumpType == JumpType.Double)
         {
-            Debug.Log("Double Jump");
+            Debug.Log("Double Jump" );
 
             _jumpType = JumpType.DoubleJump;
+            _rigidbody.velocity = new Vector2(_spriteRenderer.flipX ? -10f : 10f, 9f);
+        }
 
-            float dashX = _spriteRenderer.flipX ? -10f : 10f;
-            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x + dashX, _rigidbody.velocity.y + 2f); // TODO : velocity.x 수정
+        if (_rigidbody.velocity.y > 0f)
+        {
+            ChangeLayer(true);
+        }
+        else
+        {
+            ChangeLayer(false);
+        }
+
+        // Ground
+        if (_rigidbody.velocity.y >= 0f && _rigidbody.velocity.y <= 0.05f)
+        {
+            bool isGround = false;
+
+            RaycastHit2D hit = Physics2D.Raycast(_playerFoot.position, Vector2.down, Mathf.Infinity, _platformLayerMask);
+
+            if (hit.collider != null)
+            {
+                if (Mathf.Abs(_playerFoot.position.y - hit.point.y) <= 0.05f)
+                {
+                    isGround = true;
+                }
+            }
+
+            if (isGround)
+            {
+                _jumpType = JumpType.None;
+            }
         }
     }
 
+    // UI Update에서 호출
     public override void Control(MoveType moveType, AttackType attackType, JumpType jumpType)
     {
         // PlayerState 우선순위 클라이밍 == 공격 >= 이동
 
         _moveType = moveType;
-        _jumpType = jumpType;
+
+        // Jump
+        if ((_jumpType == JumpType.None && jumpType == JumpType.Single) || (_jumpType == JumpType.SingleJump && jumpType == JumpType.Double))
+        {
+            _jumpType = jumpType;
+        }
 
         if (_moveType != MoveType.None)
         {
@@ -264,29 +314,28 @@ public class UserPlayer : BasePlayer
                 }
             }
         }
-
-        // Debug.Log(_playerState);
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    private void ChangeLayer(bool isJumping)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer(GameLayer.GROUND))
+        if (!isJumping)
         {
-            if (collision.gameObject.TryGetComponent(out BoxCollider2D boxCollider2D))
-            {
-                float groundPosition = collision.gameObject.transform.position.y + (boxCollider2D.size.y / 2f);
-
-                // 점프 중 GROUND 충돌 체크
-                if (_playerFoot.position.y > groundPosition - 0.05f)
-                {
-                    _jumpType = JumpType.None;
-                }
-            }
-            else
-            {
-                _jumpType = JumpType.None;
-            }
+            gameObject.layer = LayerMask.NameToLayer(GameLayer.PLAYER);
+        }
+        else
+        {
+            gameObject.layer = LayerMask.NameToLayer(GameLayer.PLAYER_JUMPING);            
         }
     }
+
+    /*
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if ((_platformLayerMask.value & (1 << collision.gameObject.layer)) != 0)
+        {
+            _jumpType = JumpType.None;
+        }
+    }
+    */
 
 }

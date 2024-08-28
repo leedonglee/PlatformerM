@@ -16,6 +16,7 @@ TagManager:
   - 
   - 
   - Player
+  - Player_Jumping
   - Player_Climbing
   - 
   - 
@@ -24,9 +25,8 @@ TagManager:
   - 
   - 
   - 
-  - 
   - Ground
-  - 
+  - Box
   - 
   - 
   - 

@@ -53,17 +53,20 @@ public class PlayUI : BaseUI
                 moveType = MoveType.Right;
             }
         }
-
+        
+        
         // Attack
         AttackType attackType = AttackType.None;
 
+        /*
         if (Input.GetKey(KeyCode.A))
         {
             attackType = AttackType.A;
         }
+        */
 
         // Jump
-        JumpType jumpType = _controller.Player.JumpType;
+        JumpType jumpType = JumpType.None;
 
         if (Input.GetKey(KeyCode.LeftAlt))
         {
