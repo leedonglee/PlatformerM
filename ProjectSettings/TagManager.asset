@@ -12,21 +12,20 @@ TagManager:
   - Water
   - UI
   - 
+  - 
+  - 
+  - 
   - Player
+  - Player_Climbing
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - Ground
-  - Box
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
   - 
   - 
   - 
@@ -37,6 +36,7 @@ TagManager:
   - 
   - 
   - Wall
+  - 
   m_SortingLayers:
   - name: Default
     uniqueID: 0

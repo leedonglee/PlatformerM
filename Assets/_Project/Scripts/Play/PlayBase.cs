@@ -31,7 +31,7 @@ public enum AttackType
 
 public enum JumpType
 {
-    None, Single, SingleJump, Double, DoubleJump, LadderJump
+    None, Single, SingleJump, Double, DoubleJump, LadderJump, Falling
 }
 
 #endregion
@@ -113,43 +113,46 @@ public interface ILadder
 
 public interface IBaseStage
 {
-    ILadder GetLadder(Transform footTransform, bool moveUp);
+    bool CanClimb(Transform footTransform, bool climbingUp);
 
+    ILadder GetPlayerLadder();
+    
     // bool CanJumpDown();
 
-    /*
-    // Player
-    void SetTerrain(Transform playerTransform, 점프 위치 jumpType = JumpType.Ground);
-    */
+    // void SetTerrain();
 }
 
 public abstract class BaseStage : PlayBase, IBaseStage
 {
-    public abstract ILadder GetLadder(Transform footTransform, bool moveUp);
+    public abstract bool CanClimb(Transform footTransform, bool climbingUp);
+
+    public abstract ILadder GetPlayerLadder();
 
     // public abstract bool CanJumpDown();
+
+    // public abstract void SetTerrain();
 }
 
 #endregion
 
 public interface IBasePlayer
 {
+    void Control(MoveType moveType, AttackType attackType, JumpType jumpType); // <- UI
+
     Transform Transform { get; } // <- Camera, Stage
 
     JumpType  JumpType  { get; } // <- UI
-
-    void Control(MoveType moveType, AttackType attackType, JumpType jumpType); // <- UI
 }
 
 #region Player
 
 public abstract class BasePlayer : PlayBase, IBasePlayer
 {
+    public abstract void Control(MoveType moveType, AttackType attackType, JumpType jumpType);
+
     public abstract Transform Transform { get; }
 
     public abstract JumpType  JumpType  { get; }
-
-    public abstract void Control(MoveType moveType, AttackType attackType, JumpType jumpType);
 }
 
 #endregion

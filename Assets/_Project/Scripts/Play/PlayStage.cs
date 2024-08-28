@@ -7,94 +7,92 @@ public class PlayStage : BaseStage
     [SerializeField]
     private List<StageLadder> _ladderList;
 
+    // Player
     private Transform _playerTransform;
+    private ILadder _playerLadder;
 
     void Start()
     {
         _playerTransform = _controller.Player.Transform;
     }
 
-    public override ILadder GetLadder(Transform footTransform, bool moveUp)
+    public override bool CanClimb(Transform footTransform, bool climbingUp)
     {
-        for (int i = 0; i < _ladderList.Count; i++)
+        if (_playerLadder != null)
         {
-            StageLadder ladder = _ladderList[i];
+            float maxY = _playerLadder.MaxY;
+            float minY = _playerLadder.MinY;
 
-            if (!ladder.CanClimb)
-            {
-                continue;
-            }
-
-            float differenceX = Mathf.Abs(ladder.transform.position.x - _playerTransform.position.x);
-
-            bool canClimb = false;
-
-            // Check X
-            if (differenceX < 0.25f)
-            {
-                float maxY = ladder.MaxY;
-                float minY = ladder.MinY;
-
-                // Check Y
-                if (moveUp)
-                {
-                    if (footTransform.position.y > minY && footTransform.position.y < maxY)
-                    {
-                        canClimb = true;
-                    }
-                }
-                else
-                {
-                    float differenceY = Mathf.Abs(ladder.transform.position.x - _playerTransform.position.x);
-
-                    if (footTransform.position.y >= maxY && differenceY < 0.25f)
-                    {
-                        canClimb = true;
-                    }
-                }
-            }
-
-            if (canClimb)
-            {
-                _playerTransform.position = new Vector2(ladder.transform.position.x, _playerTransform.position.y);
-                return ladder;
-            }
+            // Check Y
+            return CanClimb(footTransform, climbingUp, maxY, minY);
         }
-
-        return null;
-    }
-
-    /*
-    public override bool CanClimb(Transform playerTransform)
-    {
-        for (int i = 0; i < _ladderList.Count; i++)
+        else
         {
-            Ladder ladder = _ladderList[i];
-
-            float difference = Mathf.Abs(ladder.transform.position.x - playerTransform.position.x);
-
-            // X축 1미만
-            if (difference < 1f)
+            for (int i = 0; i < _ladderList.Count; i++)
             {
-                TODO : 그냥 점프만 하는것도 포함시켜버려서 플레이어 X 고정은 플레이어에서 처리 (bool을 바꾸자 struct로)
-                
-                // Y축 계산
-                if (playerTransform.position.y > ladder.MinY && playerTransform.position.y < ladder.MaxY)
+                StageLadder ladder = _ladderList[i];
+
+                if (!ladder.CanClimb)
                 {
-                    playerTransform.position = new Vector2(ladder.transform.position.x, playerTransform.position.y);
-                    return true;
+                    continue;
+                }
+
+                float differenceX = Mathf.Abs(ladder.transform.position.x - _playerTransform.position.x);
+
+                // Check X
+                if (differenceX < 0.25f)
+                {
+                    float maxY = ladder.MaxY;
+                    float minY = ladder.MinY;
+
+                    // TODO : 사다리의 MaxY -> 사다리가 있는 Ground의 Top값(max.y)
+
+                    // Check Y
+                    bool canClimb = CanClimb(footTransform, climbingUp, maxY, minY);
+
+                    if (canClimb)
+                    {
+                        _playerLadder = ladder;
+                        _playerTransform.position = new Vector2(ladder.transform.position.x, _playerTransform.position.y);
+                        return true;
+                    }
                 }
             }
         }
 
         return false;
     }
-    */
 
-    /*
-    public override bool CanJumpDown()
+    public override ILadder GetPlayerLadder()
     {
+        ILadder ladder = _playerLadder;
+        _playerLadder = null;
+        return ladder;
+    }
+
+    private bool CanClimb(Transform footTransform, bool climbingUp, float maxY, float minY)
+    {
+        if (climbingUp)
+        {
+            if (footTransform.position.y >= minY)
+            {
+                if (footTransform.position.y > maxY - 0.05f)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+        else
+        {
+            if (footTransform.position.y > minY && footTransform.position.y <= maxY + 0.05f)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
-    */
+
 }

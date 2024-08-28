@@ -6,7 +6,7 @@ public class UserPlayer : BasePlayer
 {
     private enum PlayerState
     {
-        None, Climbing, Attacking
+        None, Climbing, Attacking, /* MovableAttacking */ // None : Standing, Walking, Jumping
     }
 
     [SerializeField]
@@ -19,19 +19,11 @@ public class UserPlayer : BasePlayer
 
     // Sprite
     private SpriteRenderer _spriteRenderer;
-    // private Vector3 _spriteMinPoint;
 
     // State
     private PlayerState _playerState = PlayerState.None;
     private MoveType _moveType = MoveType.None;
     private JumpType _jumpType = JumpType.None;
-    
-    // State Ladder
-    private ILadder _currentLadder;
-    private bool _ladderJump;
-
-    // Platform LayerMask
-    private int _platformLayerMask;
 
     public override Transform Transform => transform;
 
@@ -41,36 +33,6 @@ public class UserPlayer : BasePlayer
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rigidbody = GetComponent<Rigidbody2D>();
-
-        // _spriteMinPoint = _spriteRenderer.sprite.bounds.min;
-
-        // Platform Layers
-        string[] platformLayers = new string[2]; // Ground, Box, ...
-
-        platformLayers[0] = "Ground";
-        platformLayers[1] = "Box";
-
-        _platformLayerMask = LayerMask.GetMask(platformLayers);
-    }
-
-    void Update()
-    {
-        /*
-        Vector2 footPosition = new Vector2(transform.position.x, transform.position.y + _spriteMinPoint.y);
-
-        RaycastHit2D hit = Physics2D.Raycast(footPosition, Vector2.down, Mathf.Infinity, _platformLayerMask);
-
-        if (hit.collider != null)
-        {
-            // TODO : 수정(뭔가 좀 안맞음)
-            // 땅 착지 판단
-            if (Vector2.Distance(footPosition, hit.point) < 0.02f) // Log -> 0.0149
-            {
-                _jumpType = JumpType.None;
-            }
-        }
-        */
-
     }
 
     /*
@@ -88,6 +50,12 @@ public class UserPlayer : BasePlayer
             return;
         }
 
+        // 점프 없이 낙하(공중에서 점프 금지)
+        if (_rigidbody.velocity.y < -1f && _jumpType == JumpType.None)
+        {
+            _jumpType = JumpType.Falling;
+        }
+
         // 최대 중력 고정
         if (_rigidbody.velocity.y < PLAYER_MAX_GRAVITY)
         {
@@ -96,7 +64,7 @@ public class UserPlayer : BasePlayer
         }
 
         // Move
-        if (_moveType != MoveType.None)
+        if (_moveType != MoveType.None && _jumpType != JumpType.DoubleJump)
         {
             if (_moveType == MoveType.Left)
             {
@@ -109,154 +77,215 @@ public class UserPlayer : BasePlayer
         }
 
         // Jump
-        if (_jumpType == JumpType.Single || _jumpType == JumpType.LadderJump)
+        if (_jumpType == JumpType.Single)
         {
+            Debug.Log("Single Jump");
+
             _jumpType = JumpType.SingleJump;
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 9f);
         }
         else if (_jumpType == JumpType.Double)
         {
+            Debug.Log("Double Jump");
+
             _jumpType = JumpType.DoubleJump;
-            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 9f); // TODO : velocity.x 수정
+
+            float dashX = _spriteRenderer.flipX ? -10f : 10f;
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x + dashX, _rigidbody.velocity.y + 2f); // TODO : velocity.x 수정
         }
     }
 
     public override void Control(MoveType moveType, AttackType attackType, JumpType jumpType)
     {
+        // PlayerState 우선순위 클라이밍 == 공격 >= 이동
+
         _moveType = moveType;
         _jumpType = jumpType;
 
         if (_moveType != MoveType.None)
         {
-            // Move
             if (_playerState == PlayerState.None)
             {
-                // Check Ladder
-                if (_moveType != MoveType.Left && _moveType != MoveType.Right)
+                // Climbing
+                MoveType climbingType = MoveType.None;
+
+                switch (_moveType)
                 {
-                    bool moveUp = false;
+                    case MoveType.Up:
+                    case MoveType.UpLeft:
+                    case MoveType.UpRight:
+                        climbingType = MoveType.Up;
+                        break;
+                    case MoveType.Down:
+                    case MoveType.DownLeft:
+                    case MoveType.DownRight:
+                        climbingType = MoveType.Down;
+                        break;
+                }
 
-                    if (_moveType == MoveType.Up || _moveType == MoveType.UpLeft || _moveType == MoveType.UpRight)
+                if (climbingType == MoveType.Up || climbingType == MoveType.Down)
+                {
+                    bool canClimb = _controller.Stage.CanClimb(_playerFoot, climbingType == MoveType.Up);
+
+                    if (canClimb)
                     {
-                        moveUp = true;
+                        _playerState = PlayerState.Climbing;
+                        gameObject.layer = LayerMask.NameToLayer(GameLayer.PLAYER_CLIMBING);
+
+                        // 중력 비활성화
+                        _rigidbody.gravityScale = 0f;
+                        return;
                     }
+                }
 
-                    if (moveUp || (!moveUp && _jumpType == JumpType.None))
+                // Move
+                if (_playerState == PlayerState.None)
+                {
+                    switch (_moveType)
                     {
-                        ILadder ladder = _controller.Stage.GetLadder(_playerFoot, moveUp);
-
-                        if (ladder != null)
+                        case MoveType.Left:
+                        case MoveType.UpLeft:
+                        case MoveType.DownLeft:
+                            _moveType = MoveType.Left;
+                            break;
+                        case MoveType.Right:
+                        case MoveType.UpRight:
+                        case MoveType.DownRight:
+                            _moveType = MoveType.Right;
+                            break;
+                    }
+                    
+                    if (_moveType == MoveType.Left || _moveType == MoveType.Right)
+                    {
+                        if (_moveType == MoveType.Left)
                         {
-                            // TODO : interface와 state로 같은 상황에 동시에 사용하고 있음
-                            _currentLadder = ladder;
-                            _playerState = PlayerState.Climbing;
-
-                            // 중력 비활성화
-                            _rigidbody.gravityScale = 0f;
+                            _spriteRenderer.flipX = true;
+                            _controller.Camera.MoveCamera(MoveType.Left);
+                        }
+                        else
+                        {
+                            _spriteRenderer.flipX = false;
+                            _controller.Camera.MoveCamera(MoveType.Right);                    
                         }
                     }
                 }
-
-                // Move Left || Right
-                if (_playerState != PlayerState.Climbing)
-                {
-                    if (_moveType == MoveType.Left || _moveType == MoveType.UpLeft || _moveType == MoveType.DownLeft)
-                    {
-                        _moveType = MoveType.Left;
-                        _spriteRenderer.flipX = true;
-                        _controller.Camera.MoveCamera(MoveType.Left);
-                    }
-                    else if (_moveType == MoveType.Right || _moveType == MoveType.UpRight || _moveType == MoveType.DownRight)
-                    {
-                        _moveType = MoveType.Right;
-                        _spriteRenderer.flipX = false;
-                        _controller.Camera.MoveCamera(MoveType.Right);
-                    }
-                }
-                // else if 아델 지하 통로 같은 특수한 경우 8방향 이동
             }
-
-            // Climbing
             else if (_playerState == PlayerState.Climbing)
             {
                 // Jump
                 if (_moveType != MoveType.Up && _moveType != MoveType.Down && _jumpType == JumpType.Single)
                 {
-                    _jumpType = JumpType.LadderJump;
-
-                    // 점프 후 바로 사다리 오르기 방지
-                    _currentLadder.CanClimb = false;
                     _playerState = PlayerState.None;
+                    gameObject.layer = LayerMask.NameToLayer(GameLayer.PLAYER);
 
                     // 중력 활성화
                     _rigidbody.gravityScale = 1f;
+
+                    // Set Direction
+                    if (_spriteRenderer.flipX)
+                    {
+                        _controller.Camera.MoveCamera(MoveType.Left);
+                    }
+                    else
+                    {
+                        _controller.Camera.MoveCamera(MoveType.Right);
+                    }
+
+                    ILadder ladder = _controller.Stage.GetPlayerLadder();
+
+                    // 점프 후 같은 사다리 오르기 방지
+                    ladder.CanClimb = false;
+                    return;
+                }
+                else
+                {
+                    _jumpType = JumpType.None;
                 }
 
-                // Move Ladder
-                if (_currentLadder != null)
-                {
-                    if (_moveType != MoveType.Left && _moveType != MoveType.Right)
-                    {
-                        bool isEscape = false;
+                // Climbing
+                MoveType climbingType = MoveType.None;
 
-                        if (_moveType == MoveType.Up || _moveType == MoveType.UpLeft || _moveType == MoveType.UpRight)
+                switch (_moveType)
+                {
+                    case MoveType.Up:
+                    case MoveType.UpLeft:
+                    case MoveType.UpRight:
+                        climbingType = MoveType.Up;
+                        break;
+                    case MoveType.Down:
+                    case MoveType.DownLeft:
+                    case MoveType.DownRight:
+                        climbingType = MoveType.Down;
+                        break;
+                }
+
+                if (climbingType == MoveType.Up || climbingType == MoveType.Down)
+                {
+                    bool canClimb = _controller.Stage.CanClimb(_playerFoot, climbingType == MoveType.Up);
+
+                    if (canClimb)
+                    {                        
+                        if (climbingType == MoveType.Up)
                         {
                             transform.position = new Vector2(transform.position.x, transform.position.y + PLAYER_MOVE_SPEED * Time.deltaTime);
                             _controller.Camera.MoveCamera(MoveType.Up);
-
-                            if (_playerFoot.position.y > _currentLadder.MaxY + 0.1f)
-                            {
-                                isEscape = true;
-                            }
                         }
                         else
                         {
                             transform.position = new Vector2(transform.position.x, transform.position.y - PLAYER_MOVE_SPEED * Time.deltaTime);
                             _controller.Camera.MoveCamera(MoveType.Down);
+                        }
+                    }
+                    else
+                    {
+                        _playerState = PlayerState.None;
+                        gameObject.layer = LayerMask.NameToLayer(GameLayer.PLAYER);
 
-                            if (_playerFoot.position.y < _currentLadder.MinY)
-                            {
-                                isEscape = true;
-                            }
+                        // 중력 활성화
+                        _rigidbody.gravityScale = 1f;
+
+                        // Set Direction
+                        if (_spriteRenderer.flipX)
+                        {
+                            _controller.Camera.MoveCamera(MoveType.Left);
+                        }
+                        else
+                        {
+                            _controller.Camera.MoveCamera(MoveType.Right);
                         }
 
-                        if (isEscape)
+                        ILadder ladder = _controller.Stage.GetPlayerLadder();
+
+                        if (climbingType == MoveType.Up)
                         {
-                            _currentLadder = null;
-                            _playerState = PlayerState.None;
-
-                            // 중력 활성화
-                            _rigidbody.gravityScale = 1f;
-
-                            MoveType dirType = MoveType.Left;
-
-                            if (_moveType == MoveType.UpRight || _moveType == MoveType.DownRight)
-                            {
-                                dirType = MoveType.Right;
-                            }
-
-                            if (dirType == MoveType.Left)
-                            {
-                                _spriteRenderer.flipX = true;
-                                _controller.Camera.MoveCamera(MoveType.Left);
-                            }
-                            else
-                            {
-                                _spriteRenderer.flipX = false;
-                                _controller.Camera.MoveCamera(MoveType.Right);
-                            }
+                            transform.position = new Vector2(transform.position.x, ladder.MaxY + Mathf.Abs(_playerFoot.localPosition.y) + 0.05f);
                         }
                     }
                 }
             }
         }
+
+        // Debug.Log(_playerState);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer(GameLayer.GROUND))
         {
-            _jumpType = JumpType.None;
+            if (collision.gameObject.TryGetComponent(out BoxCollider2D boxCollider2D))
+            {
+                float groundPosition = collision.gameObject.transform.position.y + (boxCollider2D.size.y / 2f);
+
+                // 점프 중 GROUND 충돌 체크
+                if (_playerFoot.position.y > groundPosition - 0.05f)
+                {
+                    _jumpType = JumpType.None;
+                }
+            }
+            else
+            {
+                _jumpType = JumpType.None;
+            }
         }
     }
 
