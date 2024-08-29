@@ -55,7 +55,7 @@ public sealed class PlayCamera : BaseCamera
         }
     }
 
-    void Update()
+    void LateUpdate()
     {
         // Position X
         float positionX = _playerTransform.position.x;

@@ -106,6 +106,8 @@ public interface ILadder
 {
     bool CanClimb { get; set; }
 
+    float PosX { get; }
+
     float MaxY { get; }
 
     float MinY { get; }
@@ -113,24 +115,12 @@ public interface ILadder
 
 public interface IBaseStage
 {
-    bool CanClimb(Transform footTransform, bool climbingUp);
-
-    ILadder GetPlayerLadder();
-    
-    // bool CanJumpDown();
-
-    // void SetTerrain();
+    ILadder GetLadder(Vector2 playerFoot, bool climbingUp);
 }
 
 public abstract class BaseStage : PlayBase, IBaseStage
 {
-    public abstract bool CanClimb(Transform footTransform, bool climbingUp);
-
-    public abstract ILadder GetPlayerLadder();
-
-    // public abstract bool CanJumpDown();
-
-    // public abstract void SetTerrain();
+    public abstract ILadder GetLadder(Vector2 playerFoot, bool climbingUp);
 }
 
 #endregion
@@ -161,13 +151,7 @@ public abstract class BasePlayer : PlayBase, IBasePlayer
 
 public interface IBaseUI
 {
-    /*
-    void SetTimer(float timer);
 
-    void SetHit(int damage);
-
-    void SetDamage(int damage);
-    */
 }
 
 public abstract class BaseUI : PlayBase, IBaseUI

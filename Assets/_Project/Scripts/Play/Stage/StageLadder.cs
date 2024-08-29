@@ -27,6 +27,8 @@ public class StageLadder : MonoBehaviour, ILadder
         }
     }
 
+    public float PosX => transform.position.x;
+
     public float MaxY => _maxPoint.position.y;
 
     public float MinY => _minPoint.position.y;
