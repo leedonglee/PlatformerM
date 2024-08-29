@@ -35,7 +35,7 @@ public class StageLadder : MonoBehaviour, ILadder
 
     private async void SetState()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(1.0f), ignoreTimeScale: false);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.75f), ignoreTimeScale: false);
 
         _canClimb = true;
     }

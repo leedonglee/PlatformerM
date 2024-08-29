@@ -47,7 +47,7 @@ public class PlayStage : BaseStage
                 }
                 else
                 {
-                    if (playerFoot.y > minY && playerFoot.y <= maxY + 0.05f)
+                    if (playerFoot.y > maxY - 0.05f && playerFoot.y <= maxY + 0.05f)
                     {
                         return ladder;
                     }

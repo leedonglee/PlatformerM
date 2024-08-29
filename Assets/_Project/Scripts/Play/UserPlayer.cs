@@ -6,12 +6,13 @@ public class UserPlayer : BasePlayer
 {
     private enum PlayerState
     {
-        None, Climbing, Attacking, /* MovableAttacking */ // None : Standing, Walking, Jumping
+        None, Down, Walking, Jumping, Climbing, Attacking /* MovableAttacking */
     }
 
     [SerializeField]
     private UserPlayerBody _playerBody;
-
+    
+    private const string PLAYER_ANIMATION = "PlayerState";
     private const float PLAYER_MAX_GRAVITY = -10f;
     private const float PLAYER_MOVE_SPEED = 3f;
 
@@ -104,6 +105,7 @@ public class UserPlayer : BasePlayer
         {
             // Debug.Log("Single Jump");
 
+            _playerState = PlayerState.Jumping;
             _jumpType = JumpType.SingleJump;
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 9f);
             _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
@@ -112,6 +114,7 @@ public class UserPlayer : BasePlayer
         {
             // Debug.Log("Double Jump");
 
+            _playerState = PlayerState.Jumping;
             _jumpType = JumpType.DoubleJump;
             _rigidbody.velocity = new Vector2(_spriteRenderer.flipX ? -10f : 10f, 9f);
             _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
@@ -120,6 +123,7 @@ public class UserPlayer : BasePlayer
         {
             // Debug.Log("Down Jump");
 
+            _playerState = PlayerState.Jumping;
             _jumpType = JumpType.DownJump;
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 4.5f);
             _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
@@ -152,6 +156,7 @@ public class UserPlayer : BasePlayer
 
             if (isGround)
             {
+                _playerState = PlayerState.None;
                 _jumpType = JumpType.None;
                 _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
             }
@@ -169,7 +174,7 @@ public class UserPlayer : BasePlayer
             _jumpType = jumpType;
         }
 
-        if (_playerState == PlayerState.None)
+        if (_playerState == PlayerState.None || _playerState == PlayerState.Down || _playerState == PlayerState.Walking || _playerState == PlayerState.Jumping)
         {
             if (_moveType != MoveType.None)
             {
@@ -247,6 +252,11 @@ public class UserPlayer : BasePlayer
 
                 if (_moveType == MoveType.Left || _moveType == MoveType.Right)
                 {
+                    if (_playerState != PlayerState.Jumping)
+                    {
+                        _playerState = PlayerState.Walking;
+                    }
+
                     if (_moveType == MoveType.Left)
                     {
                         _spriteRenderer.flipX = true;
@@ -256,6 +266,13 @@ public class UserPlayer : BasePlayer
                     {
                         _spriteRenderer.flipX = false;
                         _controller.Camera.MoveCamera(MoveType.Right);
+                    }
+                }
+                else if (_moveType == MoveType.Down)
+                {
+                    if (_playerState != PlayerState.Jumping)
+                    {
+                        _playerState = PlayerState.Down;
                     }
                 }
             }
@@ -286,6 +303,9 @@ public class UserPlayer : BasePlayer
                     // 점프 후 같은 사다리 오르기 방지
                     _playerLadder.CanClimb = false;
                     _playerLadder = null;
+
+                    // Animation
+                    _animator.speed = 1f;
                     return;
                 }
                 else
@@ -312,6 +332,9 @@ public class UserPlayer : BasePlayer
 
                 if (climbingType == MoveType.Up || climbingType == MoveType.Down)
                 {
+                    // Animation
+                    _animator.speed = 1f;
+
                     bool canClimb = CanClimb(climbingType == MoveType.Up, _playerLadder.MaxY, _playerLadder.MinY);
 
                     if (canClimb)
@@ -351,49 +374,22 @@ public class UserPlayer : BasePlayer
                         }
                     }
                 }
+                else
+                {
+                    _animator.speed = 0f;
+                }
             }
             else
             {
                 _jumpType = JumpType.None;
+
+                // Animation
+                _animator.speed = 0f;
             }
         }
 
-        PlayerAnimation();
-    }
-
-    private void PlayerAnimation()
-    {
-        if (_playerState == PlayerState.None)
-        {
-            if (_moveType == MoveType.Left || _moveType == MoveType.Right)
-            {
-                _animator.SetBool("IsWalking", true);
-            }
-            else
-            {
-                _animator.SetBool("IsWalking", false);
-            }
-        }
-
-        /*
-        if (_playerState == PlayerState.Climbing)
-        {
-            _animator.SetInteger("Climbing", 1);
-        }
-        else if (_playerState == PlayerState.None)
-        {
-            _animator.SetInteger("Standing", 0);
-        }
-        else
-        {
-            _animator.SetInteger("Climbing", 0);
-        }
-
-        if (_jumpType == JumpType.SingleJump || _jumpType == JumpType.DoubleJump)
-        {
-            _animator.SetTrigger("Jumping");
-        }
-        */
+        // Animation
+        _animator.SetInteger(PLAYER_ANIMATION, (int)_playerState);
     }
 
     private bool CanClimb(bool climbingUp, float maxY, float minY)
