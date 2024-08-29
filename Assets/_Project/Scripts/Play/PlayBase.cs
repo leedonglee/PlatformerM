@@ -1,10 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
-
-
 
 /*
 
@@ -31,7 +27,7 @@ public enum AttackType
 
 public enum JumpType
 {
-    None, Single, SingleJump, Double, DoubleJump, LadderJump, Falling
+    None, Single, SingleJump, Double, DoubleJump, LadderJump, Down, DownJump, Falling
 }
 
 #endregion
@@ -113,6 +109,11 @@ public interface ILadder
     float MinY { get; }
 }
 
+public interface IPlatform
+{
+    void SetInactive();
+}
+
 public interface IBaseStage
 {
     ILadder GetLadder(Vector2 playerFoot, bool climbingUp);
@@ -125,6 +126,8 @@ public abstract class BaseStage : PlayBase, IBaseStage
 
 #endregion
 
+#region Player
+
 public interface IBasePlayer
 {
     void Control(MoveType moveType, AttackType attackType, JumpType jumpType); // <- UI
@@ -133,8 +136,6 @@ public interface IBasePlayer
 
     JumpType  JumpType  { get; } // <- UI
 }
-
-#region Player
 
 public abstract class BasePlayer : PlayBase, IBasePlayer
 {

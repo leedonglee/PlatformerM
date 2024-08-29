@@ -47,15 +47,6 @@ public class UserPlayer : BasePlayer
     }
     */
 
-    // TODO
-    // 점프 벽 통과
-    // 하단 점프
-
-    // 수정
-    // Player 자체가 Player의 착지와 관련
-    // PlayerBody 추가 : Monster에도 Rigidbody가 있기 때문에 Player의 타격은 따로 Body 오브젝트에 Collider 추가 후 CollisionEnter 체크(완)
-    // PlayerFoot은 삭제 -> SpriteRenderer의 sprite.bounds.min으로 계산(완)
-
     void Start()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -71,8 +62,6 @@ public class UserPlayer : BasePlayer
 
         _platformLayerMask = LayerMask.GetMask(platformLayers);
     }
-
-    
 
     void FixedUpdate()
     {
@@ -111,17 +100,27 @@ public class UserPlayer : BasePlayer
         // Jump
         if (_jumpType == JumpType.Single)
         {
-            Debug.Log("Single Jump");
+            // Debug.Log("Single Jump");
 
             _jumpType = JumpType.SingleJump;
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 9f);
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
         else if (_jumpType == JumpType.Double)
         {
-            Debug.Log("Double Jump" );
+            // Debug.Log("Double Jump");
 
             _jumpType = JumpType.DoubleJump;
             _rigidbody.velocity = new Vector2(_spriteRenderer.flipX ? -10f : 10f, 9f);
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        }
+        else if (_jumpType == JumpType.Down)
+        {
+            // Debug.Log("Down Jump");
+
+            _jumpType = JumpType.DownJump;
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 4.5f);
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
         // Set Jump State
@@ -135,15 +134,15 @@ public class UserPlayer : BasePlayer
         }
 
         // Ground
-        if (Mathf.Abs(_rigidbody.velocity.y) < 0.025f)
+        if (Mathf.Abs(_rigidbody.velocity.y) < 0.1f)
         {
             bool isGround = false;
 
-            RaycastHit2D hit = Physics2D.BoxCast(PlayerFootPosition, new Vector2(0.6f, 0.1f), 0f, Vector2.down, Mathf.Infinity, _platformLayerMask);
+            RaycastHit2D hit = Physics2D.BoxCast(PlayerFootPosition, new Vector2(0.6f, 0.1f), 0f, Vector2.down, 0.1f, _platformLayerMask);
 
             if (hit.collider != null)
             {
-                if (Mathf.Abs(PlayerFootPosition.y - hit.point.y) <= 0.025f)
+                if (Mathf.Abs(PlayerFootPosition.y - hit.point.y) <= 0.1f)
                 {
                     isGround = true;
                 }
@@ -152,6 +151,7 @@ public class UserPlayer : BasePlayer
             if (isGround)
             {
                 _jumpType = JumpType.None;
+                _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
             }
         }
     }
@@ -204,6 +204,27 @@ public class UserPlayer : BasePlayer
                         // 중력 비활성화
                         _rigidbody.gravityScale = 0f;
                         return;
+                    }
+                }
+
+                // Move Down
+                if (_moveType == MoveType.DownLeft || _moveType == MoveType.Down || _moveType == MoveType.DownRight)
+                {
+                    if (_jumpType == JumpType.Single)
+                    {
+                        RaycastHit2D hit = Physics2D.BoxCast(new Vector2(PlayerFootPosition.x, PlayerFootPosition.y - 0.09f), new Vector2(0.6f, 0.1f), 0f, Vector2.down, 0.1f, _platformLayerMask);
+
+                        if (hit.collider != null)
+                        {
+                            if (Mathf.Abs(PlayerFootPosition.y - hit.point.y) <= 0.1f)
+                            {
+                                if (hit.collider.gameObject.TryGetComponent(out IPlatform ground))
+                                {
+                                    _jumpType = JumpType.Down;
+                                    ground.SetInactive();
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -342,7 +363,7 @@ public class UserPlayer : BasePlayer
         {
             if (PlayerFootPosition.y >= minY)
             {
-                if (PlayerFootPosition.y > maxY - 0.05f)
+                if (PlayerFootPosition.y > maxY - 0.025f)
                 {
                     return false;
                 }
@@ -352,7 +373,7 @@ public class UserPlayer : BasePlayer
         }
         else
         {
-            if (PlayerFootPosition.y > minY && PlayerFootPosition.y <= maxY + 0.05f)
+            if (PlayerFootPosition.y > minY && PlayerFootPosition.y <= maxY + 0.025f)
             {
                 return true;
             }
