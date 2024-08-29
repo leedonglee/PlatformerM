@@ -16,8 +16,9 @@ public class UserPlayer : BasePlayer
     private const float PLAYER_MOVE_SPEED = 3f;
 
     // Components
-    private Rigidbody2D _rigidbody;
+    private Animator _animator;
     private SpriteRenderer _spriteRenderer;
+    private Rigidbody2D _rigidbody;
 
     // State
     private PlayerState _playerState = PlayerState.None;
@@ -49,6 +50,7 @@ public class UserPlayer : BasePlayer
 
     void Start()
     {
+        _animator = GetComponent<Animator>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rigidbody = GetComponent<Rigidbody2D>();
 
@@ -355,6 +357,43 @@ public class UserPlayer : BasePlayer
                 _jumpType = JumpType.None;
             }
         }
+
+        PlayerAnimation();
+    }
+
+    private void PlayerAnimation()
+    {
+        if (_playerState == PlayerState.None)
+        {
+            if (_moveType == MoveType.Left || _moveType == MoveType.Right)
+            {
+                _animator.SetBool("IsWalking", true);
+            }
+            else
+            {
+                _animator.SetBool("IsWalking", false);
+            }
+        }
+
+        /*
+        if (_playerState == PlayerState.Climbing)
+        {
+            _animator.SetInteger("Climbing", 1);
+        }
+        else if (_playerState == PlayerState.None)
+        {
+            _animator.SetInteger("Standing", 0);
+        }
+        else
+        {
+            _animator.SetInteger("Climbing", 0);
+        }
+
+        if (_jumpType == JumpType.SingleJump || _jumpType == JumpType.DoubleJump)
+        {
+            _animator.SetTrigger("Jumping");
+        }
+        */
     }
 
     private bool CanClimb(bool climbingUp, float maxY, float minY)
