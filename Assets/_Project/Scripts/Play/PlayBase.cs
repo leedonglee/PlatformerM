@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using Cysharp.Threading.Tasks;
+
 /*
 
 - BaseController
@@ -40,6 +42,8 @@ public interface IBaseController
     IBaseStage  Stage  { get; }
     IBasePlayer Player { get; }
     IBaseUI UI { get; }
+
+    void QuitGame();
 }
 
 public abstract class BaseController : MonoBehaviour, IBaseController
@@ -67,6 +71,8 @@ public abstract class BaseController : MonoBehaviour, IBaseController
             list[i].SetController(this);
         }
     }
+
+    public abstract void QuitGame();
 }
 
 public abstract class PlayBase : MonoBehaviour
@@ -152,12 +158,12 @@ public abstract class BasePlayer : PlayBase, IBasePlayer
 
 public interface IBaseUI
 {
-
+    void FadeIn();
 }
 
 public abstract class BaseUI : PlayBase, IBaseUI
 {
-    
+    public abstract void FadeIn();
 }
 
 #endregion

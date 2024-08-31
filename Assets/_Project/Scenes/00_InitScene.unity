@@ -897,6 +897,8 @@ MonoBehaviour:
   - {fileID: 1967901959}
   - {fileID: 918603471}
   - {fileID: 1822823680}
+  _buttonSound: {fileID: 8300000, guid: a52280746bfe23149935c8557089a1d5, type: 3}
+  _jumpSound: {fileID: 8300000, guid: 8e4fecafb1c17a145a6fdb118f8be838, type: 3}
 --- !u!1 &1030974149
 GameObject:
   m_ObjectHideFlags: 0
@@ -906,6 +908,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1030974150}
+  - component: {fileID: 1030974151}
   m_Layer: 0
   m_Name: Init
   m_TagString: Untagged
@@ -928,6 +931,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1030974151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030974149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92ffca388e731964bb9dfe640149ac23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1127456813
 GameObject:
   m_ObjectHideFlags: 0

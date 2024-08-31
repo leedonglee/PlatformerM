@@ -9,6 +9,11 @@ using Cysharp.Threading.Tasks;
 
 public class SplashController : MonoBehaviour
 {
+    [Header("BGM")]
+    [SerializeField]
+    private AudioClip _audioClip;
+
+    [Header("UI")]
     [SerializeField]
     private RectTransform _titleRT;
     [SerializeField]
@@ -24,8 +29,12 @@ public class SplashController : MonoBehaviour
 
     void Start()
     {
+        SoundManager.Instance?.PlayMusic(_audioClip);
+
         _startButton.onClick.AddListener(() =>
         {
+            SoundManager.Instance?.PlaySound(SoundType.Button);
+
             _fadeUI.gameObject.SetActive(true);
             MoveScene();
         });

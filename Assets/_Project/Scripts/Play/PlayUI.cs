@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+using Cysharp.Threading.Tasks;
 
 public enum PadButtonType
 {
@@ -30,17 +34,74 @@ public class PlayUI : BaseUI
 {
     [SerializeField]
     private UIMobilePad _mobilePad;
+    [SerializeField]
+    private Button _quitButton;
+    [SerializeField]
+    private Button _modeButton;
+
+    [Header("Quit Popup")]
+    [SerializeField]
+    private GameObject _quitPopup;
+    [SerializeField]
+    private Button _cancelButton;
+    [SerializeField]
+    private Button _okButton;
+
+    [Header("Mode")]
+    [SerializeField]
+    private TextMeshProUGUI _modeText;
+
+    [Header("Fade")]
+    [SerializeField]
+    private CanvasGroup _fadeUI;
 
     private bool _mobileMode = false;
+
+    void Start()
+    {
+        _quitButton.onClick.AddListener(OnClickQuit);
+        _modeButton.onClick.AddListener(OnClickMode);
+        _cancelButton.onClick.AddListener(OnClickCancel);
+        _okButton.onClick.AddListener(OnClickOK);
+
+        if (!_mobileMode)
+        {
+            _mobilePad.gameObject.SetActive(false);
+
+            if (!_mobileMode)
+            {
+                _modeText.text = "PC";
+            }
+            else
+            {
+                _modeText.text = "모바일";
+            }
+        }
+    }
 
     void Update()
     {
         PlayerControl();
     }
 
-    void PlayerControl()
+    public override async void FadeIn()
     {
-        MoveType moveType = MoveType.None;
+        float alpha = 1f;
+
+        while (alpha > 0f)
+        {
+            alpha -= Time.deltaTime;
+            _fadeUI.alpha = alpha;
+
+            await UniTask.Yield();
+        }
+
+        _fadeUI.gameObject.SetActive(false);
+    }
+
+    private void PlayerControl()
+    {
+        MoveType moveType;
 
         if (!_mobileMode)
         {
@@ -62,7 +123,7 @@ public class PlayUI : BaseUI
         */
 
         // Jump
-        JumpType jumpType = JumpType.None;
+        JumpType jumpType;
 
         if (!_mobileMode)
         {
@@ -184,5 +245,61 @@ public class PlayUI : BaseUI
     }
 
 #endregion
+
+    private void OnClickQuit()
+    {
+        SoundManager.Instance?.PlaySound(SoundType.Button);
+
+        _quitPopup.SetActive(true);
+    }
+
+    private void OnClickMode()
+    {
+        SoundManager.Instance?.PlaySound(SoundType.Button);
+
+        _mobileMode = !_mobileMode;
+        _mobilePad.gameObject.SetActive(_mobileMode);
+
+        if (!_mobileMode)
+        {
+            _modeText.text = "PC";
+        }
+        else
+        {
+            _modeText.text = "모바일";
+        }
+    }
+
+    private void OnClickCancel()
+    {
+        SoundManager.Instance?.PlaySound(SoundType.Button);
+
+        _quitPopup.SetActive(false);
+    }
+
+    private void OnClickOK()
+    {
+        SoundManager.Instance?.PlaySound(SoundType.Button);
+
+        _fadeUI.alpha = 0f;
+        _fadeUI.gameObject.SetActive(true);
+        _quitPopup.SetActive(false);
+        FadeOut();
+    }
+
+    private async void FadeOut()
+    {
+        float alpha = 0f;
+
+        while (alpha < 1f)
+        {
+            alpha += Time.deltaTime;
+            _fadeUI.alpha = alpha;
+
+            await UniTask.Yield();
+        }
+
+        _controller.QuitGame();
+    }
 
 }

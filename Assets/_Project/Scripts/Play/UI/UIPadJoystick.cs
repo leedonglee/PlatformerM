@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UIPadJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IEndDragHandler, IJoystick
+public class UIPadJoystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IJoystick
 {
     [SerializeField]
     private Transform _stickTransform;
@@ -86,9 +86,14 @@ public class UIPadJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         _undetectableMagnitude = _undetectableAreaRight.position.x - _centerPosition.x;
     }
 
-    public void OnPointerDown (PointerEventData eventData) 
+    public void OnPointerDown(PointerEventData eventData) 
 	{
 		Control(eventData);
+	}
+
+    public void OnPointerUp(PointerEventData eventData) 
+	{
+		Cancel();
 	}
 
     public void OnDrag(PointerEventData eventData)

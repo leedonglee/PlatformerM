@@ -103,7 +103,7 @@ public class UserPlayer : BasePlayer
         // Jump
         if (_jumpType == JumpType.Single)
         {
-            // Debug.Log("Single Jump");
+            SoundManager.Instance?.PlaySound(SoundType.Jump);
 
             _playerState = PlayerState.Jumping;
             _jumpType = JumpType.SingleJump;
@@ -112,7 +112,7 @@ public class UserPlayer : BasePlayer
         }
         else if (_jumpType == JumpType.Double)
         {
-            // Debug.Log("Double Jump");
+            SoundManager.Instance?.PlaySound(SoundType.Jump);
 
             _playerState = PlayerState.Jumping;
             _jumpType = JumpType.DoubleJump;
@@ -121,7 +121,7 @@ public class UserPlayer : BasePlayer
         }
         else if (_jumpType == JumpType.Down)
         {
-            // Debug.Log("Down Jump");
+            SoundManager.Instance?.PlaySound(SoundType.Jump);
 
             _playerState = PlayerState.Jumping;
             _jumpType = JumpType.DownJump;
