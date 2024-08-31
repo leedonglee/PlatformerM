@@ -6,7 +6,7 @@ public class UserPlayer : BasePlayer
 {
     private enum PlayerState
     {
-        None, Down, Walking, Jumping, Climbing, Attacking /* MovableAttacking */
+        None, Down, Walking, Jumping, Climbing, Attacking
     }
 
     [SerializeField]
@@ -41,13 +41,6 @@ public class UserPlayer : BasePlayer
 
     // Foot
     private Vector2 PlayerFootPosition { get { return new Vector2(transform.position.x, transform.position.y + _playerBottom); } }
-
-    /*
-    public enum MoveType
-    {
-        None, Up, Down, Left, Right, UpLeft, UpRight, DownLeft, DownRight
-    }
-    */
 
     void Start()
     {
@@ -129,15 +122,7 @@ public class UserPlayer : BasePlayer
             _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
-        // Set Jump State
-        if (_rigidbody.velocity.y > 0f)
-        {
-            ChangeLayer(true);
-        }
-        else
-        {
-            ChangeLayer(false);
-        }
+        ChangeLayer(_rigidbody.velocity.y > 0f);
 
         // Ground
         if (Mathf.Abs(_rigidbody.velocity.y) < 0.1f)

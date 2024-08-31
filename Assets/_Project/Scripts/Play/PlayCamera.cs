@@ -31,27 +31,19 @@ public sealed class PlayCamera : BaseCamera
         Vector3 camMinPoint = _camera.ViewportToWorldPoint(new Vector3(0, 0, _camera.nearClipPlane));
         Vector3 camMaxPoint = _camera.ViewportToWorldPoint(new Vector3(1, 1, _camera.nearClipPlane));
 
-        // TODO : Vector로 변환
-        float distanceX = Mathf.Abs(camMaxPoint.x - camMinPoint.x);
+        Vector2 distance = new Vector2(Mathf.Abs(camMaxPoint.x - camMinPoint.x), Mathf.Abs(camMaxPoint.y - camMinPoint.y));
+        Vector2 midPoint = new Vector2(distance.x / 2f, distance.y / 2f);
+        Vector2 minPoint = new Vector2(_minPointTransform.position.x + midPoint.x, _minPointTransform.position.y + midPoint.y);
+        Vector2 maxPoint = new Vector2(_maxPointTransform.position.x - midPoint.x, _maxPointTransform.position.y - midPoint.y);
 
-        float midpointX = distanceX / 2f;
-        float minPointX = _minPointTransform.position.x + midpointX;
-        float maxPointX = _maxPointTransform.position.x - midpointX;
+        _minPoint = minPoint;
+        _maxPoint = maxPoint;
 
-        float distanceY = Mathf.Abs(camMaxPoint.y - camMinPoint.y);
+        float ratioHeight = distance.y * HEIGHT_RATIO;
 
-        float midpointY = distanceY / 2f;
-        float minPointY = _minPointTransform.position.y + midpointY;
-        float maxPointY = _maxPointTransform.position.y - midpointY;
-
-        _minPoint = new Vector2(minPointX, minPointY);
-        _maxPoint = new Vector2(maxPointX, maxPointY);
-
-        float ratioHeight = distanceY * HEIGHT_RATIO;
-
-        if (midpointY > ratioHeight)
+        if (midPoint.y > ratioHeight)
         {
-            _addPointY = midpointY - ratioHeight;
+            _addPointY = midPoint.y - ratioHeight;
         }
     }
 

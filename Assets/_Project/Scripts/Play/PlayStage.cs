@@ -7,12 +7,6 @@ public class PlayStage : BaseStage
     [SerializeField]
     private List<StageLadder> _ladderList;
 
-    /*
-    void Start()
-    {
-    }
-    */
-
     public override ILadder GetLadder(Vector2 playerFoot, bool climbingUp)
     {
         for (int i = 0; i < _ladderList.Count; i++)

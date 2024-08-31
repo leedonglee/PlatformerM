@@ -8,9 +8,6 @@ using Cysharp.Threading.Tasks;
 public class UserPlayerBody : MonoBehaviour
 {
     private LayerMask _damageLayerMask; // Monster, Trap, ...
-
-    // public event Action _damageCallback; <interface> -> 몬스터 또는 트랩의 공격력을 알 수 있는 interface 전달
-
     private bool _isDamaged = false;
 
     void Start()
@@ -28,7 +25,7 @@ public class UserPlayerBody : MonoBehaviour
         if ((_damageLayerMask.value & (1 << collision.gameObject.layer)) != 0)
         {
             _isDamaged = true;
-            // _damageCallback?.Invoke();
+            // callback?.Invoke();
             SetState();
         }
     }
