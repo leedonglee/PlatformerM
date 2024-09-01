@@ -30,11 +30,11 @@ PC, Mobile 두 가지 환경에서 이동을 구현했습니다. 게임 내 PC, 
 
 ### PC
 
-![PC](https://github.com/user-attachments/assets/d315da22-4fc5-4f2c-a4ca-b7c4e8730ef2)
+![PC](https://github.com/user-attachments/assets/51575a74-c10d-49ce-9e1f-331dcdebfb21)
 
 ### Mobile
 
-![Mobile](https://github.com/user-attachments/assets/c4589f5e-150e-41a7-a0d6-3bbec455c1c6)
+![Mobile](https://github.com/user-attachments/assets/f2155ff2-df45-4be9-acb7-3936727422e2)
 
 ## Info
 
