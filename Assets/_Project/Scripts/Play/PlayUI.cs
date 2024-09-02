@@ -8,7 +8,7 @@ using Cysharp.Threading.Tasks;
 
 public enum PadButtonType
 {
-    Jump
+    Attack, Jump
 }
 
 public struct PadButtonState
@@ -101,6 +101,20 @@ public class PlayUI : BaseUI
 
     private void PlayerControl()
     {
+        // Move
+        MoveType moveType = GetMoveType();
+
+        // Attack
+        AttackType attackType = GetAttackType();
+
+        // Jump
+        JumpType jumpType = GetJumpType();
+
+        _controller.Player.Control(moveType, attackType, jumpType);
+    }
+
+    private MoveType GetMoveType()
+    {
         MoveType moveType;
 
         if (!_mobileMode)
@@ -109,20 +123,30 @@ public class PlayUI : BaseUI
         }
         else
         {
-            moveType = GetMobileMoveType();
+            moveType = _mobilePad.GetMoveType();
         }
 
-        // Attack
-        AttackType attackType = AttackType.None;
+        return moveType;
+    }
 
-        /*
-        if (Input.GetKey(KeyCode.A))
+    private AttackType GetAttackType()
+    {
+        AttackType attackType;
+
+        if (!_mobileMode)
         {
-            attackType = AttackType.A;
+            attackType = GetPCAttackType();
         }
-        */
+        else
+        {
+            attackType = GetMobileAttackType();
+        }
 
-        // Jump
+        return attackType;
+    }
+
+    private JumpType GetJumpType()
+    {
         JumpType jumpType;
 
         if (!_mobileMode)
@@ -134,7 +158,7 @@ public class PlayUI : BaseUI
             jumpType = GetMobileJumpType();
         }
 
-        _controller.Player.Control(moveType, attackType, jumpType);
+        return jumpType;
     }
 
 #region PC
@@ -187,6 +211,18 @@ public class PlayUI : BaseUI
         return moveType;
     }
 
+    private AttackType GetPCAttackType()
+    {
+        AttackType attackType = AttackType.None;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            attackType = AttackType.A;
+        }
+
+        return attackType;
+    }
+
     private JumpType GetPCJumpType()
     {
         JumpType jumpType = JumpType.None;
@@ -214,9 +250,18 @@ public class PlayUI : BaseUI
 
 #region Mobile
 
-    private MoveType GetMobileMoveType()
+    private AttackType GetMobileAttackType()
     {
-        return _mobilePad.GetMoveType();
+        AttackType attackType = AttackType.None;
+
+        PadButtonState padButtonState = _mobilePad.GetPadButtonState(PadButtonType.Attack);
+
+        if (padButtonState.isPressed)
+        {
+            attackType = AttackType.A;
+        }
+
+        return attackType;
     }
 
     private JumpType GetMobileJumpType()
@@ -259,15 +304,7 @@ public class PlayUI : BaseUI
 
         _mobileMode = !_mobileMode;
         _mobilePad.gameObject.SetActive(_mobileMode);
-
-        if (!_mobileMode)
-        {
-            _modeText.text = "PC";
-        }
-        else
-        {
-            _modeText.text = "모바일";
-        }
+        _modeText.text = !_mobileMode ? "PC" : "모바일";
     }
 
     private void OnClickCancel()

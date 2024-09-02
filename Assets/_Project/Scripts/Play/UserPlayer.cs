@@ -29,6 +29,9 @@ public class UserPlayer : BasePlayer
     // Foot
     private float _playerBottom;
 
+    // Attacking
+    private float _attackCoolTime;
+
     // Climbing
     private ILadder _playerLadder;
 
@@ -261,6 +264,17 @@ public class UserPlayer : BasePlayer
                     }
                 }
             }
+
+            if (attackType != AttackType.None)
+            {
+                if (attackType == AttackType.A && _attackCoolTime <= 0f)
+                {
+                    _playerState = PlayerState.Attacking;
+                    _attackCoolTime = 0.5f;
+
+                    // TODO: Attack
+                }
+            }
         }
         else if (_playerState == PlayerState.Climbing)
         {
@@ -371,6 +385,12 @@ public class UserPlayer : BasePlayer
                 // Animation
                 _animator.speed = 0f;
             }
+        }
+
+        // Attack
+        if (_attackCoolTime > 0f)
+        {
+            _attackCoolTime -= Time.deltaTime;
         }
 
         // Animation
