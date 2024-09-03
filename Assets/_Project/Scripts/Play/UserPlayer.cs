@@ -84,7 +84,7 @@ public class UserPlayer : BasePlayer
         }
 
         // Move
-        if (_moveType != MoveType.None && _jumpType != JumpType.DoubleJump)
+        if (_moveType != MoveType.None && _jumpType != JumpType.SingleJump && _jumpType != JumpType.DoubleJump)
         {
             if (_moveType == MoveType.Left)
             {
